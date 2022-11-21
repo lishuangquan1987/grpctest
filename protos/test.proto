@@ -1,0 +1,15 @@
+syntax="proto3";
+
+//注意这里不要写错
+option go_package="./;testpb";
+
+message CallRequest{
+    string data=1;
+}
+message CallResponse{
+    string data=1;
+}
+
+service TestService{
+    rpc CallEachOther (CallRequest) returns (CallResponse);
+}
