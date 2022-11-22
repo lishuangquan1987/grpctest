@@ -11,5 +11,5 @@ message CallResponse{
 }
 
 service TestService{
-    rpc CallEachOther (CallRequest) returns (CallResponse);
+    rpc CallEachOther (stream CallRequest) returns (stream CallResponse);
 }

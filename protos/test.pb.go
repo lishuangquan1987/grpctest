@@ -4,8 +4,7 @@
 // 	protoc        v3.21.9
 // source: test.proto
 
-//package testpb
-package protos
+package proto
 
 import (
 	context "context"
@@ -127,12 +126,12 @@ var file_test_proto_rawDesc = []byte{
 	0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22,
 	0x22, 0x0a, 0x0c, 0x43, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
 	0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64,
-	0x61, 0x74, 0x61, 0x32, 0x3b, 0x0a, 0x0b, 0x54, 0x65, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69,
-	0x63, 0x65, 0x12, 0x2c, 0x0a, 0x0d, 0x43, 0x61, 0x6c, 0x6c, 0x45, 0x61, 0x63, 0x68, 0x4f, 0x74,
+	0x61, 0x74, 0x61, 0x32, 0x3f, 0x0a, 0x0b, 0x54, 0x65, 0x73, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x12, 0x30, 0x0a, 0x0d, 0x43, 0x61, 0x6c, 0x6c, 0x45, 0x61, 0x63, 0x68, 0x4f, 0x74,
 	0x68, 0x65, 0x72, 0x12, 0x0c, 0x2e, 0x43, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x0d, 0x2e, 0x43, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x42, 0x0b, 0x5a, 0x09, 0x2e, 0x2f, 0x3b, 0x74, 0x65, 0x73, 0x74, 0x70, 0x62, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x28, 0x01, 0x30, 0x01, 0x42, 0x0b, 0x5a, 0x09, 0x2e, 0x2f, 0x3b, 0x74, 0x65, 0x73, 0x74, 0x70,
+	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -225,7 +224,7 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TestServiceClient interface {
-	CallEachOther(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error)
+	CallEachOther(ctx context.Context, opts ...grpc.CallOption) (TestService_CallEachOtherClient, error)
 }
 
 type testServiceClient struct {
@@ -236,59 +235,91 @@ func NewTestServiceClient(cc grpc.ClientConnInterface) TestServiceClient {
 	return &testServiceClient{cc}
 }
 
-func (c *testServiceClient) CallEachOther(ctx context.Context, in *CallRequest, opts ...grpc.CallOption) (*CallResponse, error) {
-	out := new(CallResponse)
-	err := c.cc.Invoke(ctx, "/TestService/CallEachOther", in, out, opts...)
+func (c *testServiceClient) CallEachOther(ctx context.Context, opts ...grpc.CallOption) (TestService_CallEachOtherClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_TestService_serviceDesc.Streams[0], "/TestService/CallEachOther", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &testServiceCallEachOtherClient{stream}
+	return x, nil
+}
+
+type TestService_CallEachOtherClient interface {
+	Send(*CallRequest) error
+	Recv() (*CallResponse, error)
+	grpc.ClientStream
+}
+
+type testServiceCallEachOtherClient struct {
+	grpc.ClientStream
+}
+
+func (x *testServiceCallEachOtherClient) Send(m *CallRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *testServiceCallEachOtherClient) Recv() (*CallResponse, error) {
+	m := new(CallResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // TestServiceServer is the server API for TestService service.
 type TestServiceServer interface {
-	CallEachOther(context.Context, *CallRequest) (*CallResponse, error)
+	CallEachOther(TestService_CallEachOtherServer) error
 }
 
 // UnimplementedTestServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedTestServiceServer struct {
 }
 
-func (*UnimplementedTestServiceServer) CallEachOther(context.Context, *CallRequest) (*CallResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CallEachOther not implemented")
+func (*UnimplementedTestServiceServer) CallEachOther(TestService_CallEachOtherServer) error {
+	return status.Errorf(codes.Unimplemented, "method CallEachOther not implemented")
 }
 
 func RegisterTestServiceServer(s *grpc.Server, srv TestServiceServer) {
 	s.RegisterService(&_TestService_serviceDesc, srv)
 }
 
-func _TestService_CallEachOther_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CallRequest)
-	if err := dec(in); err != nil {
+func _TestService_CallEachOther_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TestServiceServer).CallEachOther(&testServiceCallEachOtherServer{stream})
+}
+
+type TestService_CallEachOtherServer interface {
+	Send(*CallResponse) error
+	Recv() (*CallRequest, error)
+	grpc.ServerStream
+}
+
+type testServiceCallEachOtherServer struct {
+	grpc.ServerStream
+}
+
+func (x *testServiceCallEachOtherServer) Send(m *CallResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *testServiceCallEachOtherServer) Recv() (*CallRequest, error) {
+	m := new(CallRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(TestServiceServer).CallEachOther(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/TestService/CallEachOther",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TestServiceServer).CallEachOther(ctx, req.(*CallRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 var _TestService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "TestService",
 	HandlerType: (*TestServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "CallEachOther",
-			Handler:    _TestService_CallEachOther_Handler,
+			StreamName:    "CallEachOther",
+			Handler:       _TestService_CallEachOther_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "test.proto",
 }
